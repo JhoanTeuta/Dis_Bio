@@ -1,74 +1,55 @@
 #include <Wire.h>
-#include <MPU6050.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
 const char* ssid = "MI SEGUNDO HOGAR.";
 const char* password = "3217555857diana";
-String apiKey = "V64QG9ZFV2Y0YHB9";
-const char* server = "http://api.thingspeak.com/update";
+const char* serverName = "http://TU_SERVER:1880/posture"; 
 
-MPU6050 mpu;
+Adafruit_MPU6050 mpu;
 
 void setup() {
   Serial.begin(115200);
+
+  // Conectar a Wi-Fi
   WiFi.begin(ssid, password);
-  
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Conectando a WiFi...");
+    Serial.println("Connecting to WiFi...");
   }
-  Serial.println("Conectado a WiFi");
+  Serial.println("Connected to WiFi");
 
-  Wire.begin();
-  mpu.initialize();
-  if (mpu.testConnection()) {
-    Serial.println("MPU6050 conectado correctamente");
-  } else {
-    Serial.println("Error al conectar MPU6050");
+  // Iniciar el sensor MPU6050
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
   }
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
+  Serial.println("MPU6050 initialized");
 }
 
 void loop() {
-  if (mpu.testConnection()) {
-    int16_t ax, ay, az, gx, gy, gz;
-    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
 
-    float ax_g = ax / 16384.0;
-    float ay_g = ay / 16384.0;
-    float az_g = az / 16384.0;
+  String postData = "accelX=" + String(a.acceleration.x) + "&accelY=" + String(a.acceleration.y) + "&accelZ=" + String(a.acceleration.z);
+  postData += "&gyroX=" + String(g.gyro.x) + "&gyroY=" + String(g.gyro.y) + "&gyroZ=" + String(g.gyro.z);
 
-    // Algoritmo para detectar caídas
-    bool caida = detectarCaida(ax_g, ay_g, az_g);
-    
-    if (caida) {
-      enviarDatos(ax_g, ay_g, az_g);
-    }
-  }
-  delay(1000); // Leer datos cada segundo
-}
-
-bool detectarCaida(float ax, float ay, float az) {
-  float aceleracion = sqrt(ax * ax + ay * ay + az * az);
-  if (aceleracion > 2.5) { // Umbral para detectar caída
-    Serial.println("Caída detectada");
-    return true;
-  }
-  return false;
-}
-
-void enviarDatos(float ax, float ay, float az) {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    String url = String(server) + "?api_key=" + apiKey + "&field1=" + String(ax) + "&field2=" + String(ay) + "&field3=" + String(az);
-    http.begin(url.c_str());
-    int httpCode = http.GET();
-    if (httpCode > 0) {
-      String payload = http.getString();
-      Serial.println("Datos enviados: " + payload);
-    } else {
-      Serial.println("Error en la conexión");
-    }
+    http.begin(serverName);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    int httpResponseCode = http.POST(postData);
+    Serial.println(httpResponseCode);
     http.end();
   }
+  
+  delay(1000);
 }
