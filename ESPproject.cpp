@@ -6,7 +6,7 @@
 
 const char* ssid = "MI SEGUNDO HOGAR.";
 const char* password = "3217555857diana";
-const char* serverName = "http://TU_SERVER:1880/posture"; 
+const char* serverName = "http://127.0.0.1:1880/posture"; 
 
 Adafruit_MPU6050 mpu;
 
