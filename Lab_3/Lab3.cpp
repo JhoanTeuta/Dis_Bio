@@ -80,7 +80,7 @@ void loop() {
 
   // Controlar el ajuste del límite de temperatura con pulsadores
   ajustarLimiteTemp();
-  delay(2000);  // Esperar 2 segundos entre lecturas
+  delay(200);  // Esperar 2 segundos entre lecturas
 
 
 
@@ -107,7 +107,14 @@ void setColor(int r, int g, int b) {
 void ajustarLimiteTemp() {
   if (digitalRead(BTN_SET) == HIGH) {
     setMode = !setMode;  // Alternar modo de ajuste
-    delay(200);  // Anti-rebote
+    if(setMode==1){
+      lcd.setCursor(0, 1);
+      lcd.print("Modo cambio:ACT");
+    }else{
+      lcd.setCursor(0, 1);
+      lcd.print("Modo cambio:DES");
+    }
+    delay(500);  // Anti-rebote
   }
 
   if (setMode) {
