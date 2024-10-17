@@ -33,9 +33,9 @@ void setup() {
   pinMode(LED_G, OUTPUT);
   pinMode(LED_B, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
-  pinMode(BTN_SET, INPUT);
-  pinMode(BTN_UP, INPUT);
-  pinMode(BTN_DOWN, INPUT);
+  pinMode(BTN_SET, INPUT_PULLUP);
+  pinMode(BTN_UP, INPUT_PULLUP);
+  pinMode(BTN_DOWN, INPUT_PULLUP);
   
   // Inicialmente apagar el ventilador
   digitalWrite(RELAY_PIN, LOW);
@@ -105,7 +105,7 @@ void setColor(int r, int g, int b) {
 
 // Función para ajustar el límite de temperatura con los pulsadores
 void ajustarLimiteTemp() {
-  if (digitalRead(BTN_SET) == HIGH) {
+  if (digitalRead(BTN_SET) == LOW) {
     setMode = !setMode;  // Alternar modo de ajuste
     if(setMode==1){
       lcd.setCursor(0, 1);
@@ -118,11 +118,11 @@ void ajustarLimiteTemp() {
   }
 
   if (setMode) {
-    if (digitalRead(BTN_UP) == HIGH) {
+    if (digitalRead(BTN_UP) == LOW) {
       tempLimit++;  // Incrementar límite
       delay(200);   // Anti-rebote
     }
-    if (digitalRead(BTN_DOWN) == HIGH) {
+    if (digitalRead(BTN_DOWN) == LOW) {
       tempLimit--;  // Disminuir límite
       delay(200);   // Anti-rebote
     }
