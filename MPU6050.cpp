@@ -4,8 +4,8 @@
 
 Adafruit_MPU6050 mpu;
 const int vibradorPin = 4;           // Pin GPIO para el vibrador
-const float anguloObjetivo = 160.0;  // Ángulo promedio para posición vertical en X
-const float tolerancia = 5.0;        // Tolerancia de ±5°
+const float anguloObjetivo = 160.0;  // Ángulo aproximado para posición vertical
+const float tolerancia = 10.0;        // Tolerancia de ±10° aun por evaluar
 
 void setup() {
   Serial.begin(115200);
@@ -32,7 +32,7 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
-  // Calcular el ángulo de inclinación en el eje X
+  // Calcular el ángulo de inclinación
   float anguloX = atan2(a.acceleration.y, a.acceleration.z) * 180 / PI;
   Serial.print("Ángulo en X: ");
   Serial.println(anguloX);
@@ -46,7 +46,7 @@ void loop() {
   Serial.print(a.acceleration.z);
   Serial.println(" m/s^2");
 
-  // Activar el vibrador si el ángulo en X está fuera del rango de 155° a 165°
+  // Activar el vibrador si el ángulo en X está fuera del rango de 150° a 170°
   if (anguloX < (anguloObjetivo - tolerancia) || anguloX > (anguloObjetivo + tolerancia)) {
     digitalWrite(vibradorPin, HIGH); // Encender el vibrador
     Serial.println("Fuera de posición, vibrador activado");
